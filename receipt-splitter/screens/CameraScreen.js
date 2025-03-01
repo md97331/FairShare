@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, StatusBar } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import TextRecognition from 'react-native-text-recognition';
@@ -47,5 +49,49 @@ const CameraScreen = () => {
       </View>
     );
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#f5f5f5',
+      padding: 20,
+    },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    placeholderText: {
+      fontSize: 16,
+      color: 'gray',
+      marginBottom: 20,
+    },
+    scannedText: {
+      fontSize: 16,
+      color: 'black',
+      marginTop: 10,
+      textAlign: 'center',
+    },
+    image: {
+      width: 300,
+      height: 400,
+      borderRadius: 10,
+      marginBottom: 20,
+    },
+    button: {
+      backgroundColor: '#007bff',
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginVertical: 10,
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+  });
 
   export default CameraScreen;

@@ -32,15 +32,16 @@ const App = () => {
             let iconName;
             if (route.name === 'Home') {
               iconName = 'home';
-            } else if (route.name === 'Profile') {
-              iconName = 'person';
-            } 
-            else if(route.name==='Friends'){
-              iconName='group';
-            }
-            else if (route.name === 'Analysis') {
+            } else if (route.name === 'Analysis') {
               iconName = 'lightbulb';
             }
+            else if(route.name==='Friends'){
+              iconName='group';
+            }            
+            else if (route.name === 'Profile') {
+              iconName = 'person';
+            } 
+
             return <Icon name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: 'blue',
@@ -49,7 +50,7 @@ const App = () => {
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Analysis" component={AnalysisScreen} />
         <Tab.Screen
           name="Camera"
           component={CameraScreen}
@@ -58,7 +59,8 @@ const App = () => {
           }}
         />
         <Tab.Screen name="Friends" component={FriendsScreen} />
-        <Tab.Screen name="Analysis" component={AnalysisScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+
       </Tab.Navigator>
     </NavigationContainer>
   );
