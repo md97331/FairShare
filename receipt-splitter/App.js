@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import React from 'react';
+import { StyleSheet, TouchableOpacity} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -12,7 +11,38 @@ import CameraScreen from './screens/CameraScreen';
 
 const Tab = createBottomTabNavigator();
 
-
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  button: {
+    marginTop: 20,
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  image: {
+    width: 300,
+    height: 300,
+    marginBottom: 20,
+  },
+  cameraButton: {
+    position: 'absolute',
+    top: -30,
+    alignSelf: 'center',
+    backgroundColor: 'white',
+    borderRadius: 30,
+    padding: 10,
+    elevation: 5,
+  },
+});
 
 const CameraButton = ({ onPress }) => (
   <TouchableOpacity
@@ -64,37 +94,6 @@ const App = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  button: {
-    marginTop: 20,
-    backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  image: {
-    width: 300,
-    height: 300,
-    marginBottom: 20,
-  },
-  cameraButton: {
-    position: 'absolute',
-    top: -30,
-    alignSelf: 'center',
-    backgroundColor: 'white',
-    borderRadius: 30,
-    padding: 10,
-    elevation: 5,
-  },
-});
+
 
 export default App;
