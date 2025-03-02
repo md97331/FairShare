@@ -33,7 +33,7 @@ const AuthScreen = ({ navigation }) => {
 
       if (response.ok) {
         Alert.alert('Success', isLogin ? 'Logged in successfully!' : 'User registered successfully!', [
-          { text: 'OK', onPress: () => navigation.replace('Home') }
+          { text: 'OK', onPress: () => navigation.replace('MainApp') }
         ]);
       } else {
         Alert.alert('Error', data.error || 'Something went wrong.');
