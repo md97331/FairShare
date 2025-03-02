@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ImageBackground } from 'react-native';
 import { API_BASE_URL } from '@env'; 
 
-const LOGIN_URL = new URL('api/auth/login', API_BASE_URL).toString();
-const REGISTER_URL = new URL('api/auth/register', API_BASE_URL).toString();
+//const LOGIN_URL = new URL('api/auth/login', API_BASE_URL).toString();
+//const REGISTER_URL = new URL('api/auth/register', API_BASE_URL).toString();
+
+const LOGIN_URL = API_BASE_URL+'/api/auth/login';
+const REGISTER_URL = API_BASE_URL+'/api/auth/register';
 
 const AuthScreen = ({ navigation }) => {
   const APP_NAME="Fair Share";

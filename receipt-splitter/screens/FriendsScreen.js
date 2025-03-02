@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { API_BASE_URL } from '@env';
 
-const friendsURL = new URL('api/friends', API_BASE_URL).toString();
+//const friendsURL = new URL('api/friends', API_BASE_URL).toString();
+const friendsURL = API_BASE_URL+'/api/friends';
 const CURRENT_USER_ID = "Mario";
 
 const FriendsScreen = () => {
