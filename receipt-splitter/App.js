@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity} from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -8,6 +8,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import FriendsScreen from './screens/FriendsScreen';
 import AnalysisScreen from './screens/AnalysisScreen';
 import CameraScreen from './screens/CameraScreen';
+import RegisterScreen from './screens/RegisterScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -17,21 +18,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  button: {
-    marginTop: 20,
-    backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  image: {
-    width: 300,
-    height: 300,
-    marginBottom: 20,
   },
   cameraButton: {
     position: 'absolute',
@@ -45,57 +31,54 @@ const styles = StyleSheet.create({
 });
 
 const CameraButton = ({ onPress }) => (
-  <TouchableOpacity
-    style={styles.cameraButton}
-    onPress={onPress}
-  >
+  <TouchableOpacity style={styles.cameraButton} onPress={onPress}>
     <Icon name="camera" size={30} color="black" />
   </TouchableOpacity>
 );
 
+const MainApp = () => (
+  <Tab.Navigator
+    screenOptions={({ route }) => ({
+      tabBarIcon: ({ color, size }) => {
+        let iconName;
+        if (route.name === 'Home') {
+          iconName = 'home';
+        } else if (route.name === 'Analysis') {
+          iconName = 'lightbulb';
+        } else if (route.name === 'Friends') {
+          iconName = 'group';
+        } else if (route.name === 'Profile') {
+          iconName = 'person';
+        }
+        return <Icon name={iconName} size={size} color={color} />;
+      },
+      tabBarActiveTintColor: 'blue',
+      tabBarInactiveTintColor: 'gray',
+      headerShown: false,
+    })}
+  >
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Analysis" component={AnalysisScreen} />
+    <Tab.Screen
+      name="Camera"
+      component={CameraScreen}
+      options={{
+        tabBarButton: (props) => <CameraButton {...props} />,
+      }}
+    />
+    <Tab.Screen name="Friends" component={FriendsScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+  </Tab.Navigator>
+);
+
 const App = () => {
+  const [isRegistered, setIsRegistered] = useState(false);
+
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
-            let iconName;
-            if (route.name === 'Home') {
-              iconName = 'home';
-            } else if (route.name === 'Analysis') {
-              iconName = 'lightbulb';
-            }
-            else if(route.name==='Friends'){
-              iconName='group';
-            }            
-            else if (route.name === 'Profile') {
-              iconName = 'person';
-            } 
-
-            return <Icon name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: 'blue',
-          tabBarInactiveTintColor: 'gray',
-          headerShown: false,
-        })}
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Analysis" component={AnalysisScreen} />
-        <Tab.Screen
-          name="Camera"
-          component={CameraScreen}
-          options={{
-            tabBarButton: (props) => <CameraButton {...props} />,
-          }}
-        />
-        <Tab.Screen name="Friends" component={FriendsScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
-
-      </Tab.Navigator>
+      {isRegistered ? <MainApp /> : <RegisterScreen onRegister={() => setIsRegistered(true)} />}
     </NavigationContainer>
   );
 };
-
-
 
 export default App;
