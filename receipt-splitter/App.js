@@ -12,6 +12,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import FriendsScreen from './screens/FriendsScreen';
 import AnalysisScreen from './screens/AnalysisScreen';
 import CameraScreen from './screens/CameraScreen';
+import TransactionScreen from './screens/TransactionScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -67,6 +68,7 @@ const App = () => {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Auth" component={AuthScreen} />
           <Stack.Screen name="MainApp" component={MainApp} />
+          <Stack.Screen name="Transaction" component={TransactionScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>

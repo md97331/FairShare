@@ -293,8 +293,8 @@ const CameraScreen = ({ navigation }) => {
       return;
     }
 
-    // Navigate to analysis screen with data
-    navigation.navigate('Analysis', {
+    // Navigate to transaction screen with data
+    navigation.navigate('Transaction', {
       title,
       friends: selectedFriends,
       receiptData,
