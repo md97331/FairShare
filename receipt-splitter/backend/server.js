@@ -21,12 +21,14 @@ const imageRecognitionRoutes = require('./routes/imageRecognition');
 const authRoutes = require('./routes/auth')
 const friendsRoutes = require('./routes/friends');
 const groupsRoutes = require('./routes/groups');
+const scanReceipt = require('./routes/receipt')
 // Mount Routes
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/image', imageRecognitionRoutes);
 app.use('/api/auth', authRoutes)
 app.use('/api/friends', friendsRoutes);
 app.use('/api/groups', groupsRoutes);
+app.use('/api/scan-receipt', require('./routes/receipt'));
 
 const PORT = process.env.PORT || 3080;
 app.listen(PORT, () => {
