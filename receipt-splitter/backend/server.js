@@ -18,10 +18,15 @@ app.use(express.json());
 // Import Routes
 const transactionRoutes = require('./routes/transactions');
 const imageRecognitionRoutes = require('./routes/imageRecognition');
-
+const authRoutes = require('./routes/auth')
+const friendsRoutes = require('./routes/friends');
+const groupsRoutes = require('./routes/groups');
 // Mount Routes
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/image', imageRecognitionRoutes);
+app.use('/api/auth', authRoutes)
+app.use('/api/friends', friendsRoutes);
+app.use('/api/groups', groupsRoutes);
 
 const PORT = process.env.PORT || 3080;
 app.listen(PORT, () => {
