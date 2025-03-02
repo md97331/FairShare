@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { API_BASE_URL } from '@env'; 
+
+const REGISTERATION=API_BASE_URL+"auth/register";
 
 const RegisterScreen = ({ navigation, onRegister }) => {
   const [name, setName] = useState('');
@@ -8,7 +11,7 @@ const RegisterScreen = ({ navigation, onRegister }) => {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    console.log("INside the function");
+    console.log("Inside the function");
     if (!name.trim() || !email.trim() || !password.trim()) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
@@ -17,7 +20,7 @@ const RegisterScreen = ({ navigation, onRegister }) => {
     try {
       setLoading(true);
 
-      const response = await fetch('http://172.16.49.114:3080/api/auth/register', {
+      const response = await fetch(REGISTERATION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
