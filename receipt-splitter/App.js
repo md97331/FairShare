@@ -1,92 +1,17 @@
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import AuthScreen from './screens/AuthScreen';
 import HomeScreen from './screens/HomeScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import FriendsScreen from './screens/FriendsScreen';
-import AnalysisScreen from './screens/AnalysisScreen';
-import CameraScreen from './screens/CameraScreen';
-import RegisterScreen from './screens/RegisterScreen';
 
-const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cameraButton: {
-    position: 'absolute',
-    top: -30,
-    alignSelf: 'center',
-    backgroundColor: 'white',
-    borderRadius: 30,
-    padding: 10,
-    elevation: 5,
-  },
-});
-
-const CameraButton = ({ onPress }) => (
-  <TouchableOpacity style={styles.cameraButton} onPress={onPress}>
-    <Icon name="camera" size={30} color="black" />
-  </TouchableOpacity>
-);
-
-const MainApp = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ color, size }) => {
-        let iconName;
-        if (route.name === 'Home') {
-          iconName = 'home';
-        } else if (route.name === 'Analysis') {
-          iconName = 'lightbulb';
-        } else if (route.name === 'Friends') {
-          iconName = 'group';
-        } else if (route.name === 'Profile') {
-          iconName = 'person';
-        }
-        return <Icon name={iconName} size={size} color={color} />;
-      },
-      tabBarActiveTintColor: 'blue',
-      tabBarInactiveTintColor: 'gray',
-      headerShown: false,
-    })}
-  >
-    <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Analysis" component={AnalysisScreen} />
-    <Tab.Screen
-      name="Camera"
-      component={CameraScreen}
-      options={{
-        tabBarButton: (props) => <CameraButton {...props} />,
-      }}
-    />
-    <Tab.Screen name="Friends" component={FriendsScreen} />
-    <Tab.Screen name="Profile" component={ProfileScreen} />
-  </Tab.Navigator>
-);
-
-
 const App = () => {
-  const [isRegistered, setIsRegistered] = useState(false);
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isRegistered ? (
-          <Stack.Screen name="Register">
-            {(props) => <RegisterScreen {...props} onRegister={() => setIsRegistered(true)} />}
-          </Stack.Screen>
-        ) : (
-          <Stack.Screen name="MainApp" component={MainApp} />
-        )}
+        <Stack.Screen name="Auth" component={AuthScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

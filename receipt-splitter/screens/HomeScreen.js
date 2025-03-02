@@ -6,8 +6,8 @@ import { API_BASE_URL } from '@env';
 
 
 const userId="mario@com"; // USER ID HARDCODED FOR TESTING
-const GET_TRANSACTION = API_BASE_URL+"transactions/userRange/USERA?";
-const GET_TOTAL_TRANSACTIONS = API_BASE_URL+"transactions/count/"+userId;
+const GET_TRANSACTION = new URL('transactions/userRange/USERA?', API_BASE_URL).toString();
+const GET_TOTAL_TRANSACTIONS = new URL(`transactions/count/${userId}`, API_BASE_URL).toString();
 
 const HomeScreen = () => {
   // const recentTransactions = [
