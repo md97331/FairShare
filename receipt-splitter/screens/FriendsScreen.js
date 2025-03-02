@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   View, 
   Text, 
@@ -6,32 +6,41 @@ import {
   TouchableOpacity, 
   FlatList, 
   StyleSheet, 
-  Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert 
 } from 'react-native';
+import { AuthContext } from '../AuthContext'; 
 import { API_BASE_URL } from '@env';
 
 const friendsURL = new URL('api/friends', API_BASE_URL).toString();
-const CURRENT_USER_ID = "Mario";
 
 const FriendsScreen = () => {
+  // Move useContext here, inside the functional component.
+  const { user } = useContext(AuthContext);
+  // Fallback user value if context isn't set; for testing purposes we default to "Mario"
+  const currentUserId = user ? user.email : "Mario";
+
   const [friends, setFriends] = useState([]);
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [friendToAdd, setFriendToAdd] = useState('');
 
-  // Function to load friends for the current user
+  // Load friends for the current user
   const loadFriends = async () => {
     try {
       setFriendsLoading(true);
-      const response = await fetch(`${friendsURL}/${CURRENT_USER_ID}`);
-      if (!response.ok) throw new Error('Error fetching friends');
-      const data = await response.json();
-      setFriends(data);
+      const response = await fetch(`${friendsURL}/${encodeURIComponent(currentUserId)}`);
+      console.log(`${friendsURL}/${encodeURIComponent(currentUserId)}`)
+      if (response.ok) {
+        const data = await response.json();
+        setFriends(data);
+      } else {
+        setFriends([]);
+      }
     } catch (error) {
-      // Instead of an alert, you could log the error and let the UI show no friends message
       console.error('Error fetching friends:', error);
+      setFriends([]);
     } finally {
       setFriendsLoading(false);
     }
@@ -39,52 +48,61 @@ const FriendsScreen = () => {
 
   useEffect(() => {
     loadFriends();
-  }, []);
+  }, [currentUserId]);
 
-  // Function to search for users by name
+  // Search for users by name
   const searchFriends = async () => {
     if (searchQuery.trim() === '') return;
     try {
       const response = await fetch(`${friendsURL}/search?name=${encodeURIComponent(searchQuery)}`);
-      if (!response.ok) throw new Error('Error searching for users');
-      const data = await response.json();
-      setSearchResults(data);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data);
+      } else {
+        console.error('Error searching for users:', response.status);
+      }
     } catch (error) {
-      Alert.alert('Error', error.message);
+      console.error('Error searching for users:', error);
     }
   };
 
-  // Function to add a friend using friendId
+  // Add friend using friendId
   const addFriend = async (friendId) => {
     if (!friendId) return;
     try {
-      const response = await fetch(`${friendsURL}/${CURRENT_USER_ID}/add`, {
+      const response = await fetch(`${friendsURL}/${currentUserId}/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ friendId }),
       });
-      if (!response.ok) throw new Error('Error adding friend');
-      const data = await response.json();
-      Alert.alert('Success', data.message || 'Friend added successfully');
-      setFriendToAdd('');
-      loadFriends();
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert('Success', data.message || 'Friend added successfully');
+        setFriendToAdd('');
+        loadFriends();
+      } else {
+        console.error('Error adding friend:', response.status);
+      }
     } catch (error) {
-      Alert.alert('Error', error.message);
+      console.error('Error adding friend:', error);
     }
   };
 
-  // Function to remove a friend by friendId
+  // Remove friend by friendId
   const removeFriend = async (friendId) => {
     try {
-      const response = await fetch(`${friendsURL}/${CURRENT_USER_ID}/remove/${friendId}`, {
+      const response = await fetch(`${friendsURL}/${currentUserId}/remove/${friendId}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Error removing friend');
-      const data = await response.json();
-      Alert.alert('Success', data.message || 'Friend removed successfully');
-      loadFriends();
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert('Success', data.message || 'Friend removed successfully');
+        loadFriends();
+      } else {
+        console.error('Error removing friend:', response.status);
+      }
     } catch (error) {
-      Alert.alert('Error', error.message);
+      console.error('Error removing friend:', error);
     }
   };
 
@@ -112,7 +130,9 @@ const FriendsScreen = () => {
       {friendsLoading ? (
         <ActivityIndicator size="large" color="#007bff" style={{ marginVertical: 20 }} />
       ) : friends.length === 0 ? (
-        <Text style={styles.noFriendsText}>No friends! Let's add some!</Text>
+        <View style={styles.noFriendsContainer}>
+          <Text style={styles.noFriendsText}>No friends! Let's add some!</Text>
+        </View>
       ) : (
         <FlatList
           data={friends}
@@ -185,12 +205,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 30,
     marginBottom: 10,
+    textAlign: 'center',
+    color: '#333',
+  },
+  noFriendsContainer: {
+    alignItems: 'center',
+    marginVertical: 30,
   },
   noFriendsText: {
     fontSize: 18,
     color: '#777',
     textAlign: 'center',
-    marginVertical: 20,
+    marginVertical: 10,
   },
   reloadButton: {
     backgroundColor: '#007bff',
