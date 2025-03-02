@@ -1,149 +1,288 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity   } from 'react-native';
-import { useEffect } from 'react';
-import { MaterialIcons } from '@expo/vector-icons'; // Import MaterialIcons for the reload icon
-import { API_BASE_URL } from '@env'; 
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions
+} from 'react-native';
+import { API_BASE_URL } from '@env';
+import { AuthContext } from '../AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
-
-const userId="mario@com"; // USER ID HARDCODED FOR TESTING
-const GET_TRANSACTION = 'http://172.16.49.114:3080'+'/api/transactions/userRange/USERA?';
-const GET_TOTAL_TRANSACTIONS = 'http://172.16.49.114:3080'+'/api/transactions/count/'+userId;
+const transactionsURL = new URL('api/transactions', API_BASE_URL).toString();
+const authURL = new URL('api/auth/userinfo', API_BASE_URL).toString();
 
 const HomeScreen = () => {
-  // const recentTransactions = [
-  //   { id: '1', name: 'Dinner with Friends', amount: '$45.00' }, 
-  //   { id: '2', name: 'Grocery Split', amount: '$30.75' },
-  //   { id: '3', name: 'Movie Night', amount: '$25.00' },
-  // ];
+  const navigation = useNavigation();
+  // AuthContext now contains only the user's email.
+  const { user } = useContext(AuthContext);
+  // Use the email as the unique identifier; fallback if not set.
+  const currentUserId = user?.email || "test@example.com";
 
-  const [recentTransactions, setRecentTransactions] = useState([]);
-  const [tranactionCount,setTransactionCount]=useState([]);
+  // Local state for user info, weekly summary, transactions, etc.
+  const [userInfo, setUserInfo] = useState({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [transactionCount, setTransactionCount] = useState(0);
+  const [weeklySummary, setWeeklySummary] = useState({
+    spentLastWeek: 0,
+    amountOwed: 0,
+  });
 
-  const fetchTransactionsCount = async () => {
+  // 1. Fetch user info from /api/auth/userinfo/:userId
+  const fetchUserInfo = async () => {
     try {
-      const response = await fetch(GET_TRANSACTION+"startIndex=0&endIndex="+tranactionCount);
-      const data = await response.json();
-      setTransactionCount(data);
+      const url = `${authURL}/${encodeURIComponent(currentUserId)}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setUserInfo(data);
+      } else {
+        console.error('Error fetching user info, status:', response.status);
+      }
     } catch (error) {
-      console.error('Error fetching transactions:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching user info:', error);
     }
   };
-  const fetchTransactions = async () => {
+
+  // 2. Fetch recent transactions from /api/transactions/userRange/:userId?startIndex=0&endIndex=5
+  const fetchRecentTransactions = async () => {
     try {
-      const response = await fetch(GET_TOTAL_TRANSACTIONS);
+      const url = `${transactionsURL}/userRange/${encodeURIComponent(currentUserId)}?startIndex=0&endIndex=5`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch transactions');
       const data = await response.json();
-      console.log(data);
       setRecentTransactions(data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-   // Fetch Data from API
-   useEffect(() => {
-    fetchTransactionsCount().then(
-      ()=>{
-        fetchTransactions();
-      }
-    )
-  }, []);
+  // 3.r Fetch transaction count from /api/transactions/count/:userId
+  const fetchTransactionCount = async () => {
+    try {
+      const url = `${transactionsURL}/count/${encodeURIComponent(currentUserId)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch transaction count');
+      const data = await response.json();
+      setTransactionCount(data.totalCount || 0);
+    } catch (error) {
+      console.error('Error fetching transaction count:', error);
+    }
+  };
+
+  // 4. Fetch weekly summary (placeholder using monthly endpoint)
+  const fetchWeeklySummary = async () => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1; // 1-indexed month
+      const url = `${transactionsURL}/monthly/${encodeURIComponent(currentUserId)}?year=${year}&month=${month}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch monthly transactions');
+      const data = await response.json();
+      // Calculate "spent last week" as sum of transaction totals (placeholder logic)
+      let spentLastWeek = data.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      // Placeholder: Assume amount owed is half of spentLastWeek
+      let amountOwed = spentLastWeek * 0.5;
+      setWeeklySummary({ spentLastWeek, amountOwed });
+    } catch (error) {
+      console.error('Error fetching weekly summary:', error);
+    }
+  };
+
+  // Combine all data loads
+  const loadData = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchUserInfo(),
+      fetchRecentTransactions(),
+      fetchTransactionCount(),
+      fetchWeeklySummary(),
+    ]);
+    setLoading(false);
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [currentUserId]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData();
+  };
+
+  // Render each transaction card.
+  const renderTransaction = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.transactionItem} 
+      onPress={() => navigation.navigate('TransactionDetail', { transaction: item })}
+    >
+      <Text style={styles.transactionText}>{item.name}</Text>
+      <Text style={styles.amount}>${Number(item.total).toFixed(2)}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to FairShare!</Text>
-      {loading?(
-        <ActivityIndicator size="large" color="#007bff" />
-      ):
-      (<>
-        <Text style={styles.subtitle}>Recent Transactions</Text>
-      <FlatList
-        data={recentTransactions}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.transactionItem}>
-            <Text style={styles.transactionText}>{item.name}</Text>
-            <Text style={styles.amount}>${item.total}</Text>
-          </View>
-        )}
-        ></FlatList>
-       <TouchableOpacity style={styles.floatingButton} onPress={fetchTransactions}>
-        <MaterialIcons name="refresh" size={28} color="white" />
-      </TouchableOpacity>
-      </>
-    )
-      }
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <View style={styles.wave} />
+        <Text style={styles.headerTitle}>
+          Welcome, {userInfo.name || currentUserId}!
+        </Text>
+        <Text style={styles.headerSubtitle}>
+          Here’s a snapshot of your recent transactions.
+        </Text>
+      </View>
+  
+      {/* Summary Card */}
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Spent Last Week:</Text>
+          <Text style={styles.summaryValue}>
+            ${weeklySummary.spentLastWeek.toFixed(2)}
+          </Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>You Owe:</Text>
+          <Text style={styles.summaryValue}>
+            ${weeklySummary.amountOwed.toFixed(2)}
+          </Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Total Transactions:</Text>
+          <Text style={styles.summaryValue}>{transactionCount}</Text>
+        </View>
+      </View>
+  
+      {/* Recent Transactions Section */}
+      <Text style={styles.sectionTitle}>Recent Transactions</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={recentTransactions}
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+          renderItem={renderTransaction}
+          style={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No recent transactions found.</Text>
+          }
+        />
+      )}
     </View>
   );
 };
+
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 20,
+    paddingTop: 80, // Extra top padding for iPhone Pro Max notch/dynamic island
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 45,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 8,
+  headerContainer: {
+    backgroundColor: '#e0f0ff', // Light blue header background
+    paddingBottom: 30,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    marginBottom: 20,
     alignItems: 'center',
-    marginVertical: 10,
+    elevation: 4,
   },
-  buttonText: {
-    color: '#fff',
+  wave: {
+    backgroundColor: '#007bff', // Main blue accent for wave
+    height: 80,
+    width: width * 1.2,
+    position: 'absolute',
+    top: -40,
+    left: -20,
+    borderBottomLeftRadius: 80,
+    borderBottomRightRadius: 80,
+    transform: [{ rotate: '10deg' }],
+    opacity: 0.4,
+  },
+  headerTitle: {
+    marginTop: 80,
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+  },
+  summaryCard: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+    marginHorizontal: 20,
+    elevation: 3,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+  },
+  summaryLabel: {
+    fontSize: 16,
+    color: '#555',
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
+  list: {
+    marginBottom: 20,
   },
   transactionItem: {
     backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 5,
+    padding: 12,
+    borderRadius: 12,
+    marginVertical: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    elevation: 3,
+    elevation: 2,
   },
   transactionText: {
-    fontSize: 16,
+    fontSize: 14,
+    color: '#333',
   },
   amount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: 'green',
   },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#007bff',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5, // For Android shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+  emptyText: {
+    fontSize: 14,
+    color: '#777',
+    textAlign: 'center',
+    marginTop: 20,
   },
-  subtitle: { fontSize: 18, fontWeight: 'bold', marginTop: 20 },
 });
 
 export default HomeScreen;

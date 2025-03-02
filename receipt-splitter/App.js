@@ -1,3 +1,4 @@
+// App.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -6,12 +7,14 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { TouchableOpacity } from 'react-native';
 import { AuthProvider } from './AuthContext';
 
+// Screen imports
 import AuthScreen from './screens/AuthScreen';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import FriendsScreen from './screens/FriendsScreen';
 import AnalysisScreen from './screens/AnalysisScreen';
 import CameraScreen from './screens/CameraScreen';
+import TransactionDetail from './screens/TransactionDetail';
 import TransactionScreen from './screens/TransactionScreen';
 
 const Stack = createStackNavigator();
@@ -38,6 +41,9 @@ const MainApp = () => (
           iconName = 'group';
         } else if (route.name === 'Profile') {
           iconName = 'person';
+        } else if (route.name === 'Camera') {
+          // We'll use a custom button, so no icon needed here if you prefer
+          iconName = 'camera';
         }
         return <Icon name={iconName} size={size} color={color} />;
       },
@@ -68,6 +74,7 @@ const App = () => {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Auth" component={AuthScreen} />
           <Stack.Screen name="MainApp" component={MainApp} />
+          <Stack.Screen name="TransactionDetail" component={TransactionDetail} />
           <Stack.Screen name="Transaction" component={TransactionScreen} />
         </Stack.Navigator>
       </NavigationContainer>

@@ -9,4 +9,7 @@ router.post('/login', authController.login);
 // POST /api/auth/register for user registration
 router.post('/register', authController.register);
 
+router.get('/userinfo/:userId', authController.getUserInfo);
+
+
 module.exports = router;

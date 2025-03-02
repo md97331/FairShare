@@ -80,3 +80,28 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getUserInfo = async (req, res) => {
+  const userId = req.params.userId; // In our case, userId is the email.
+  try {
+    const userSnapshot = await db.collection('users')
+      .where('email', '==', userId)
+      .limit(1)
+      .get();
+
+    if (userSnapshot.empty) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userDoc = userSnapshot.docs[0];
+    const userData = userDoc.data();
+
+    res.status(200).json({
+      name: userData.name,
+      email: userData.email
+    });
+  } catch (error) {
+    console.error('Error retrieving user info:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

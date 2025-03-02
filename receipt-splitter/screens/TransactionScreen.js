@@ -11,44 +11,51 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
+import { API_BASE_URL } from '@env';
 import { AuthContext } from '../AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const TRANSACTIONS_URL = 'http://10.10.1.136:3080/api/transactions';
+const TRANSACTIONS_URL = new URL('api/transactions', API_BASE_URL).toString();
 
 const TransactionScreen = ({ route, navigation }) => {
-  // Add defensive programming to handle missing route params
+  // Defensive defaults for route params.
   const { title = "New Split", friends = [], receiptData = {}, imageUri = null } = route.params || {};
   const { user } = useContext(AuthContext);
+  // Use the user's email as the unique identifier; if no name, use the email as name.
   const currentUserId = user ? user.email : "CurrentUser";
-  const currentUserName = user ? user.name || "Me" : "Me";
+  const currentUserName = user?.name ? user.name : currentUserId;
 
-  // Ensure receiptData has the expected structure
+  // Build safe receipt data.
   const safeReceiptData = {
     merchant: receiptData?.merchant || "Unknown Merchant",
     date: receiptData?.date || new Date().toLocaleDateString(),
     items: receiptData?.items || [],
     tax: receiptData?.tax || 0,
-    total: receiptData?.total || 0
+    total: receiptData?.total || 0,
   };
 
-  // Add current user to the participants
+  // Ensure current user is included correctly in participants.
   const [participants, setParticipants] = useState([
     { id: currentUserId, name: currentUserName, isCurrentUser: true },
-    ...(Array.isArray(friends) ? friends : []).map(friend => ({ ...friend, isCurrentUser: false }))
+    // For other friends, assume each friend object has { email, name }.
+    ...(Array.isArray(friends)
+      ? friends.map(friend => ({
+          id: friend.email || friend.id,  // Use email if available.
+          name: friend.name || friend.email || "Unknown",
+          isCurrentUser: false,
+        }))
+      : [])
   ]);
 
-  // Ensure items have the expected structure
+  // Initialize items (if none, add default).
   const [items, setItems] = useState(
-    (Array.isArray(safeReceiptData.items) ? safeReceiptData.items : [])
-      .map(item => ({
-        name: item?.name || "Unknown Item",
-        price: item?.price || 0,
-        assignedTo: [], // Array of participant IDs
-      }))
+    (Array.isArray(safeReceiptData.items) ? safeReceiptData.items : []).map(item => ({
+      name: item?.name || "Unknown Item",
+      price: item?.price || 0,
+      assignedTo: [], // Participant IDs.
+    }))
   );
-
-  // If no items were provided, add a default item
+  
   useEffect(() => {
     if (items.length === 0) {
       setItems([{
@@ -66,19 +73,17 @@ const TransactionScreen = ({ route, navigation }) => {
     taxPerPerson: 0,
     owedByPerson: {},
     total: 0,
-    numParticipants: 1
+    numParticipants: 1,
   });
 
-  // Calculate tax per person and totals
+  // Calculate summary (tax, owed amounts, etc.)
   useEffect(() => {
     calculateSummary();
   }, [items]);
 
   const calculateSummary = () => {
     try {
-      // Count how many people are participating (have at least one item)
       const activeParticipantIds = new Set();
-      
       if (Array.isArray(items)) {
         items.forEach(item => {
           if (Array.isArray(item.assignedTo)) {
@@ -88,61 +93,42 @@ const TransactionScreen = ({ route, navigation }) => {
           }
         });
       }
-      
-      // Always include current user
+      // Always include the current user.
       activeParticipantIds.add(currentUserId);
-      
       const numParticipants = activeParticipantIds.size;
-      
-      // Calculate tax per person (split equally)
       const taxPerPerson = (safeReceiptData.tax || 0) / numParticipants;
-      
-      // Calculate what each person owes
       const owedByPerson = {};
-      
-      // Initialize with tax
+      // Initialize owed amounts with tax share.
       participants.forEach(person => {
-        if (person && person.id && activeParticipantIds.has(person.id)) {
-          owedByPerson[person.id] = taxPerPerson;
-        } else if (person && person.id) {
-          owedByPerson[person.id] = 0;
-        }
+        owedByPerson[person.id] = activeParticipantIds.has(person.id) ? taxPerPerson : 0;
       });
-      
-      // Add items
+      // Add each item's cost.
       if (Array.isArray(items)) {
         items.forEach(item => {
-          if (item && Array.isArray(item.assignedTo)) {
-            const numAssigned = item.assignedTo.length;
-            if (numAssigned > 0) {
-              const pricePerPerson = (item.price || 0) / numAssigned;
-              item.assignedTo.forEach(personId => {
-                if (personId && owedByPerson[personId] !== undefined) {
-                  owedByPerson[personId] += pricePerPerson;
-                }
-              });
-            }
+          if (item && Array.isArray(item.assignedTo) && item.assignedTo.length > 0) {
+            const pricePerPerson = item.price / item.assignedTo.length;
+            item.assignedTo.forEach(personId => {
+              if (owedByPerson[personId] !== undefined) {
+                owedByPerson[personId] += pricePerPerson;
+              }
+            });
           }
         });
       }
-      
-      // Calculate total
       const total = Object.values(owedByPerson).reduce((sum, amount) => sum + amount, 0);
-      
       setSummary({
         taxPerPerson,
         owedByPerson,
         total,
-        numParticipants
+        numParticipants,
       });
     } catch (error) {
       console.error("Error calculating summary:", error);
-      // Set a default summary to prevent UI crashes
       setSummary({
         taxPerPerson: 0,
         owedByPerson: { [currentUserId]: safeReceiptData.total || 0 },
         total: safeReceiptData.total || 0,
-        numParticipants: 1
+        numParticipants: 1,
       });
     }
   };
@@ -155,15 +141,11 @@ const TransactionScreen = ({ route, navigation }) => {
   const toggleParticipantForItem = (participantId) => {
     const updatedItems = [...items];
     const item = updatedItems[selectedItemIndex];
-    
     if (item.assignedTo.includes(participantId)) {
-      // Remove participant
       item.assignedTo = item.assignedTo.filter(id => id !== participantId);
     } else {
-      // Add participant
       item.assignedTo.push(participantId);
     }
-    
     setItems(updatedItems);
   };
 
@@ -174,7 +156,6 @@ const TransactionScreen = ({ route, navigation }) => {
 
   const getParticipantNames = (assignedTo) => {
     if (assignedTo.length === 0) return "Unassigned";
-    
     return assignedTo.map(id => {
       const participant = participants.find(p => p.id === id);
       return participant ? participant.name : "Unknown";
@@ -182,7 +163,6 @@ const TransactionScreen = ({ route, navigation }) => {
   };
 
   const saveTransaction = async () => {
-    // Check if all items are assigned
     const unassignedItems = items.filter(item => item.assignedTo.length === 0);
     if (unassignedItems.length > 0) {
       Alert.alert(
@@ -201,52 +181,38 @@ const TransactionScreen = ({ route, navigation }) => {
   const submitTransaction = async () => {
     try {
       setIsSubmitting(true);
-      
-      // Format data according to the backend API structure
       const transactionData = {
         name: title,
         date: new Date().toISOString(),
-        // The backend expects a users array with items for each user
         users: participants.map(participant => {
-          // Get all items assigned to this participant
           const participantItems = items
             .filter(item => item.assignedTo.includes(participant.id))
             .map(item => {
-              // If item is split among multiple people, calculate the split price
               const splitCount = item.assignedTo.length;
               const pricePerPerson = splitCount > 0 ? item.price / splitCount : item.price;
-              
               return {
                 name: item.name,
-                price: pricePerPerson
+                price: pricePerPerson,
               };
             });
-          
-          // Calculate total for this participant (items + share of tax)
           const itemsTotal = participantItems.reduce((sum, item) => sum + item.price, 0);
           const taxShare = summary.owedByPerson[participant.id] - itemsTotal || 0;
-          
           return {
             userId: participant.id,
             name: participant.name,
             items: participantItems,
             total: itemsTotal,
-            // Include tax as a separate item if there is any
-            ...(taxShare > 0 && {
-              fees: taxShare
-            }),
-            splitAmount: summary.owedByPerson[participant.id] || 0
+            ...(taxShare > 0 && { fees: taxShare }),
+            splitAmount: summary.owedByPerson[participant.id] || 0,
           };
         }),
-        // Include any participants who have items assigned
         userIds: participants
           .filter(p => summary.owedByPerson[p.id] > 0)
           .map(p => p.id),
-        // Include merchant and other metadata
         merchant: safeReceiptData.merchant,
         fees: safeReceiptData.tax || 0,
         subtotal: safeReceiptData.total - safeReceiptData.tax,
-        total: safeReceiptData.total
+        total: safeReceiptData.total,
       };
       
       console.log('Sending transaction data:', JSON.stringify(transactionData, null, 2));
@@ -263,19 +229,16 @@ const TransactionScreen = ({ route, navigation }) => {
         Alert.alert(
           "Success",
           "Transaction saved successfully!",
-          [{ text: "OK", onPress: () => navigation.navigate('MainApp', {screen: 'Home'}) }]
+          [{ text: "OK", onPress: () => navigation.navigate('MainApp', { screen: 'Home' }) }]
         );
       } else {
-        // Try to get error details from response
         let errorMessage = "Failed to save transaction";
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
-          // If we can't parse the error response, use the status text
           errorMessage = `Error: ${response.status} ${response.statusText}`;
         }
-        
         console.error('Transaction save error:', errorMessage);
         Alert.alert("Error", errorMessage);
       }
@@ -290,9 +253,7 @@ const TransactionScreen = ({ route, navigation }) => {
   const sendPaymentRequest = (participantId) => {
     const participant = participants.find(p => p.id === participantId);
     const amount = summary.owedByPerson[participantId];
-    
     if (!participant || !amount) return;
-    
     Alert.alert(
       "Payment Request",
       `Send payment request of $${amount.toFixed(2)} to ${participant.name}?`,
@@ -301,7 +262,7 @@ const TransactionScreen = ({ route, navigation }) => {
         { 
           text: "Send", 
           onPress: () => {
-            // Here you would implement the actual payment request logic
+            // Implement payment request logic here.
             Alert.alert("Success", `Payment request sent to ${participant.name}`);
           }
         }
@@ -694,4 +655,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TransactionScreen; 
+export default TransactionScreen;
