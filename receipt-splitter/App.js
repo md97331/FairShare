@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -11,6 +12,7 @@ import CameraScreen from './screens/CameraScreen';
 import RegisterScreen from './screens/RegisterScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 const styles = StyleSheet.create({
   container: {
@@ -71,12 +73,21 @@ const MainApp = () => (
   </Tab.Navigator>
 );
 
+
 const App = () => {
   const [isRegistered, setIsRegistered] = useState(false);
 
   return (
     <NavigationContainer>
-      {isRegistered ? <MainApp /> : <RegisterScreen onRegister={() => setIsRegistered(true)} />}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isRegistered ? (
+          <Stack.Screen name="Register">
+            {(props) => <RegisterScreen {...props} onRegister={() => setIsRegistered(true)} />}
+          </Stack.Screen>
+        ) : (
+          <Stack.Screen name="MainApp" component={MainApp} />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

@@ -1,18 +1,45 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
-const RegisterScreen = ({ onRegister }) => {
+const RegisterScreen = ({ navigation, onRegister }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    if (name.trim() && email.trim() && phone.trim()) {
-      onRegister(); // Call the function to proceed to the main app
-    } else {
-      alert('Please fill in all fields');
+  const handleRegister = async () => {
+    console.log("INside the function");
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch('http://172.16.49.114:3080/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Success', 'User registered successfully!', [
+          {text: 'OK', onPress: () => onRegister() }
+        ]);
+      } else {
+        Alert.alert('Error', data.error || 'Registration failed.');
+      }
+    } catch (error) {
+      console.error('Registration Error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -33,16 +60,17 @@ const RegisterScreen = ({ onRegister }) => {
         keyboardType="email-address"
       />
 
+
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
+      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Registering...' : 'Register'}</Text>
       </TouchableOpacity>
     </View>
   );
