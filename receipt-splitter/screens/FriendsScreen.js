@@ -14,7 +14,10 @@ import {
 import { AuthContext } from '../AuthContext'; 
 import { API_BASE_URL } from '@env';
 
+
+const CURRENT_USER_ID = "Mario";
 const friendsURL = new URL('api/friends', API_BASE_URL).toString();
+
 
 const FriendsScreen = () => {
   const { user } = useContext(AuthContext);
