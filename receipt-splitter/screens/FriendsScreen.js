@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import { AuthContext } from '../AuthContext'; 
 import { API_BASE_URL } from '@env';
-
+console.log(API_BASE_URL);
 
 const CURRENT_USER_ID = "Mario";
-const friendsURL = new URL('api/friends', API_BASE_URL).toString();
+const friendsURL = 'http://10.10.1.136:3080'+'/api/friends';
 
 
 const FriendsScreen = () => {

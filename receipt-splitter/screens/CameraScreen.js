@@ -20,8 +20,8 @@ import {
 import { API_BASE_URL } from '@env';
 
 // Define API endpoints using the same pattern as FriendsScreen
-const friendsURL = 'http://172.16.6.84:3080/api/friends';
-const SCAN_RECEIPT_URL = 'http://172.16.49.114:3080/api/scan-receipt';
+const friendsURL = 'http://10.10.1.136:3080/api/friends';
+const SCAN_RECEIPT_URL = 'http://10.10.1.136:3080/api/scan-receipt';
 
 const CameraScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);

@@ -11,8 +11,8 @@ import {
 import { API_BASE_URL } from '@env';
 import { AuthContext } from '../AuthContext'; 
 
-const LOGIN_URL = 'http://172.16.49.114:3080/api/auth/login';
-const REGISTER_URL = 'http://172.16.49.114:3080/api/auth/register';
+const LOGIN_URL = 'http://10.10.1.136:3080/api/auth/login';
+const REGISTER_URL = 'http://10.10.1.136:3080/api/auth/register';
 
 const AuthScreen = ({ navigation }) => {
   const APP_NAME = "Fair Share";
