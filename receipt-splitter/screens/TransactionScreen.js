@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { AuthContext } from '../AuthContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TRANSACTIONS_URL = 'http://10.10.1.136:3080/api/transactions';
 
@@ -198,6 +199,40 @@ const TransactionScreen = ({ route, navigation }) => {
     }
   };
 
+  // Fix the saveTransactionLocally function
+  const saveTransactionLocally = async (transactionData) => {
+    try {
+      // Get existing transactions from storage
+      const existingTransactionsJson = await AsyncStorage.getItem('localTransactions');
+      let transactions = [];
+      
+      if (existingTransactionsJson) {
+        transactions = JSON.parse(existingTransactionsJson);
+      }
+      
+      // Add a unique ID and timestamp to the transaction
+      const newTransaction = {
+        ...transactionData,
+        id: Date.now().toString(), // Use timestamp as ID
+        createdAt: new Date().toISOString(),
+        status: 'local' // Mark as locally stored
+      };
+      
+      // Add to the beginning of the array
+      transactions.unshift(newTransaction);
+      
+      // Save back to storage
+      await AsyncStorage.setItem('localTransactions', JSON.stringify(transactions));
+      
+      console.log('Transaction saved locally:', newTransaction.name);
+      return true;
+    } catch (error) {
+      console.error('Error saving transaction locally:', error);
+      return false;
+    }
+  };
+
+  // Then update the submitTransaction function
   const submitTransaction = async () => {
     try {
       setIsSubmitting(true);
@@ -249,35 +284,42 @@ const TransactionScreen = ({ route, navigation }) => {
         total: safeReceiptData.total
       };
       
-      console.log('Sending transaction data:', JSON.stringify(transactionData, null, 2));
+      console.log('Saving transaction data locally:', JSON.stringify(transactionData, null, 2));
       
-      const response = await fetch(TRANSACTIONS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(transactionData),
-      });
+      // Try to save to backend first
+      try {
+        const response = await fetch(TRANSACTIONS_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(transactionData),
+          timeout: 5000 // Add a timeout to fail faster if network is down
+        });
+        
+        if (response.ok) {
+          Alert.alert(
+            "Success",
+            "Transaction saved successfully!",
+            [{ text: "OK", onPress: () => navigation.navigate('MainApp') }]
+          );
+          return;
+        }
+      } catch (networkError) {
+        console.log('Network error, falling back to local storage:', networkError);
+      }
       
-      if (response.ok) {
+      // If backend save fails, save locally
+      const savedLocally = await saveTransactionLocally(transactionData);
+      
+      if (savedLocally) {
         Alert.alert(
           "Success",
-          "Transaction saved successfully!",
-          [{ text: "OK", onPress: () => navigation.navigate('Home') }]
+          "Transaction saved locally. It will be synced when connection is available.",
+          [{ text: "OK", onPress: () => navigation.navigate('MainApp') }]
         );
       } else {
-        // Try to get error details from response
-        let errorMessage = "Failed to save transaction";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // If we can't parse the error response, use the status text
-          errorMessage = `Error: ${response.status} ${response.statusText}`;
-        }
-        
-        console.error('Transaction save error:', errorMessage);
-        Alert.alert("Error", errorMessage);
+        Alert.alert("Error", "Failed to save transaction locally.");
       }
     } catch (error) {
       console.error("Error saving transaction:", error);
