@@ -6,11 +6,8 @@ import { API_BASE_URL } from '@env';
 
 
 const userId="mario@com"; // USER ID HARDCODED FOR TESTING
-//const GET_TRANSACTION = new URL('api/transactions/userRange/USERA?', API_BASE_URL).toString();
-//const GET_TOTAL_TRANSACTIONS = new URL(`api/transactions/count/${userId}`, API_BASE_URL).toString();
-
-const GET_TRANSACTION = API_BASE_URL+'/api/transactions/userRange/USERA?';
-const GET_TOTAL_TRANSACTIONS = API_BASE_URL+'/api/transactions/count/'+userId;
+const GET_TRANSACTION = 'http://172.16.49.114:3080'+'/api/transactions/userRange/USERA?';
+const GET_TOTAL_TRANSACTIONS = 'http://172.16.49.114:3080'+'/api/transactions/count/'+userId;
 
 const HomeScreen = () => {
   // const recentTransactions = [
