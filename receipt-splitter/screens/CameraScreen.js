@@ -19,8 +19,8 @@ import {
 } from 'react-native';
 import { API_BASE_URL } from '@env';
 
-// Define API endpoints using the same pattern as HomeScreen
-const SEARCH_FRIENDS_URL = 'http://172.16.49.114:3080/api/friends/search';
+// Define API endpoints using the same pattern as FriendsScreen
+const friendsURL = 'http://172.16.6.84:3080/api/friends';
 const SCAN_RECEIPT_URL = 'http://172.16.49.114:3080/api/scan-receipt';
 
 const CameraScreen = ({ navigation }) => {
@@ -63,28 +63,32 @@ const CameraScreen = ({ navigation }) => {
     };
   }, [scanningInterval]);
 
-  // Search friends API
+  // Search friends API - Updated to match FriendsScreen
   const searchFriends = async (query) => {
+    if (query.trim() === '') return;
+    
     try {
       setIsLoading(true);
-      // Use the same pattern as in HomeScreen
-      const response = await fetch(`${SEARCH_FRIENDS_URL}?name=${query}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
+      // Use the same pattern as in FriendsScreen
+      const url = `${friendsURL}/search?q=${encodeURIComponent(query)}`;
+      console.log('Searching users with URL:', url);
+      
+      const response = await fetch(url);
       
       if (response.ok) {
-        setSearchResults(data.users || []);
+        const data = await response.json();
+        // Filter out users already in selected friends list
+        const filtered = data.filter(item => 
+          !selectedFriends.some(f => f.id === item.id)
+        );
+        setSearchResults(filtered);
       } else {
-        console.error('Error searching friends:', data.error);
+        console.error('Error searching for users, status:', response.status);
+        setSearchResults([]);
       }
     } catch (error) {
       console.error('Error searching friends:', error);
-      console.log('Network request failed. API URL:', SEARCH_FRIENDS_URL);
+      console.log('Network request failed. API URL:', url);
     } finally {
       setIsLoading(false);
     }
@@ -339,19 +343,17 @@ const CameraScreen = ({ navigation }) => {
             <ActivityIndicator size="small" color="#007bff" />
           ) : (
             searchResults.length > 0 && (
-              <FlatList
-                data={searchResults}
-                keyExtractor={(item) => item.id}
-                style={styles.searchResults}
-                renderItem={({ item }) => (
+              <View style={styles.searchResults}>
+                {searchResults.map(item => (
                   <TouchableOpacity
+                    key={item.id}
                     style={styles.searchResultItem}
                     onPress={() => addFriend(item)}
                   >
                     <Text style={styles.friendText}>{item.name}</Text>
                   </TouchableOpacity>
-                )}
-              />
+                ))}
+              </View>
             )
           )}
         </View>
@@ -359,15 +361,15 @@ const CameraScreen = ({ navigation }) => {
         {/* Selected Friends */}
         {selectedFriends.length > 0 && (
           <View style={styles.selectedFriendsContainer}>
-            <Text style={styles.subtitle}>Selected Friends</Text>
+            <Text style={styles.subtitle}>Selected Friends:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {selectedFriends.map(friend => (
+              {selectedFriends.map(item => (
                 <TouchableOpacity
-                  key={friend.id}
+                  key={item.id}
                   style={styles.selectedFriendChip}
-                  onPress={() => removeFriend(friend.id)}
+                  onPress={() => removeFriend(item.id)}
                 >
-                  <Text style={styles.selectedFriendText}>{friend.name} ✕</Text>
+                  <Text style={styles.selectedFriendText}>{item.name} ✕</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
