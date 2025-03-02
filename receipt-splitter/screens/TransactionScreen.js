@@ -263,7 +263,7 @@ const TransactionScreen = ({ route, navigation }) => {
         Alert.alert(
           "Success",
           "Transaction saved successfully!",
-          [{ text: "OK", onPress: () => navigation.navigate('Home') }]
+          [{ text: "OK", onPress: () => navigation.navigate('MainApp', {screen: 'Home'}) }]
         );
       } else {
         // Try to get error details from response

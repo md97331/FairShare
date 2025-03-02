@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    elevation: 3,
+    elevation: 2,
   },
   transactionText: { fontSize: 16 },
   amount: { fontSize: 16, fontWeight: 'bold', color: 'green' },
