@@ -4,6 +4,10 @@
 
 Fair Share is a mobile application designed to mak splitting bills among friends easy and efficient. The app provides a seamless way to scan, process, and split expenses, reducing manual calculations and improving financial management. Built with React Native, Node.js, Firebase and OpenAI. Fair Share ensures a smooth user experience on both Android and IOS platform.
 
+# Demo 
+
+https://youtu.be/UkIMWfLS02g?si=WPQCH5w5xhz2hsvI
+
 ## Contributors
 
 Mario Diaz
