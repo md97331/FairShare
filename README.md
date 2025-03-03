@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fair Share is a mobile application designed to mak splitting bills among friends easy and efficient. The app provides a seamless way to scan, process, and split expenses, reducing manual calculations and improving financial management. Built with React Native, Node.js, Firebase and OpenAI. Fair Share ensures a smooth user experience on both Android and IOS platform.
+Fair Share is a mobile application designed to make splitting bills among friends easy and efficient. The app provides a seamless way to scan, process, and split expenses, reducing manual calculations and improving financial management. Built with React Native, Node.js, Firebase and OpenAI. Fair Share ensures a smooth user experience on both Android and IOS platform.
 
 # Demo 
 
@@ -19,17 +19,55 @@ Sanjay Sakthivel
 Vignesh Ram Ramesh Kutti
 
 ## Features
-- User Authentication: Secure login and account managemement
+- User Authentication: Secure login and account management
+
+  [<img src="https://github.com/user-attachments/assets/29bf16b0-24e2-471c-920b-bf660b57d3a9" width="250"/>](register_page.png)
+  [<img src="https://github.com/user-attachments/assets/88b04c18-d2c7-4c9e-ac73-8b8b91cf7596" width="250"/>](login_page.png)
+  [<img src="https://github.com/user-attachments/assets/62e9927b-5a40-437d-aa32-0a8091b64cb7" width="250"/>](sucessfull_login.png)
+
 - Home page: Display recent transcations and shared expenses.
+
+  [<img src="https://github.com/user-attachments/assets/95dad5fe-569a-40d9-a91c-7edc421a0fdc" width="250"/> <img src="https://github.com/user-attachments/assets/f47569dc-528b-4497-b6de-31cceffb3d8e" width="250"/>](home_page.png)
+    
+    - Past Transactions: Past transactions can be viewed.
+      
+    [<img src="https://github.com/user-attachments/assets/d0d8cdf2-721c-489f-af53-69dff18a2067" width="250"/>](past_transaction_page_2.png)    
+  
 - Spending Analysis: Monthly expenditure breakdown with interaction charts.
+  
+   [<img src="https://github.com/user-attachments/assets/9c6ca128-2ce7-4933-abc3-d43208a36531" width="250"/>](analysis_page_with_data.png)
+  
 - Bill Uploading:
+    
     - Capture a bill using mobile camera or upload from the gallery.
+      
+       [<img src="https://github.com/user-attachments/assets/8181a008-d8d3-4436-85db-813f91b6190e" width="250"/> <img src="https://github.com/user-attachments/assets/d8096573-7d51-4a9c-8632-52ecf0d4a5e8" width="250"/>](creating_split.png)
+    
     - Extract text from images using OpenAI's OCR capabilities.
+      
+       [<img src="https://github.com/user-attachments/assets/2d563154-e8a0-4020-87bf-1751c21db171" width="250"/> <img src="https://github.com/user-attachments/assets/7ea7f7d0-20a0-4a7c-aaed-15286cd4a1a9" width="250"/>](bill_analysis_progression_page.png)
+      
+
 - Bill Spliting:
+
+    - Automatically generates a split breakdown of the bill
+      
+      [<img src="https://github.com/user-attachments/assets/7a0bd880-6630-4d06-b894-e9f95ebf1fb2" width="250"/>](bill_splitting_page.png)
+     
+    
     - Users can tag friends to each item on the bill.
-    - Automatically generates a split breakdown of the bill.
+      
+      [<img src="https://github.com/user-attachments/assets/fd89e950-3f69-41a6-aff8-ad942c6167ed" width="250"/>](Assigning_people_to_items.png)
+     
+
 - Friends Management: Add new friends and mangage existing once.
+  
+   [<img src="https://github.com/user-attachments/assets/7c8b939e-ac96-48fe-b2ed-25572656f945" width="250"/> <img src="https://github.com/user-attachments/assets/9d74dc9e-033c-457b-87bb-f31a0f3c9e9f" width="250"/>](empty_friend_list.png)
+  
 - Profile Page: View and manage user details.
+  
+   [<img src="https://github.com/user-attachments/assets/e4aaf29c-d399-4917-afc3-fc8c490e1128" width="250"/>](profile.png)
+
 - Error Handling and Scalability: Handles empty responses, invalid data and API errors effectively.
 
 ## Technologies Utilized
